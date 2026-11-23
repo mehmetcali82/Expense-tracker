@@ -42,7 +42,28 @@
             <label for="auth-email">Email</label>
             <input id="auth-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
             <label for="auth-password">Password</label>
-            <input id="auth-password" name="password" type="password" autocomplete="current-password" minlength="6" placeholder="At least 6 characters" required />
+            <div class="auth-password-field">
+              <input id="auth-password" name="password" type="password" autocomplete="current-password" minlength="1" placeholder="Enter your password" required />
+              <button id="auth-password-toggle" class="password-toggle" type="button" data-password-label="password" aria-label="Show password" aria-controls="auth-password" aria-pressed="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+                  <circle cx="12" cy="12" r="3" />
+                  <path class="eye-slash" d="m3 3 18 18" />
+                </svg>
+              </button>
+            </div>
+            <p id="auth-password-hint" class="password-hint" hidden>Use at least 12 characters, including a number and a special character.</p>
+            <label id="auth-confirm-password-label" for="auth-confirm-password" hidden>Confirm password</label>
+            <div id="auth-confirm-password-field" class="auth-password-field" hidden>
+              <input id="auth-confirm-password" name="confirm-password" type="password" autocomplete="new-password" placeholder="Re-enter your password" disabled />
+              <button id="auth-confirm-password-toggle" class="password-toggle" type="button" data-password-label="confirm password" aria-label="Show confirm password" aria-controls="auth-confirm-password" aria-pressed="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+                  <circle cx="12" cy="12" r="3" />
+                  <path class="eye-slash" d="m3 3 18 18" />
+                </svg>
+              </button>
+            </div>
             <button id="auth-submit" class="submit-button" type="submit">Sign in</button>
             <p id="auth-message" class="form-message" role="status" aria-live="polite"></p>
           </form>

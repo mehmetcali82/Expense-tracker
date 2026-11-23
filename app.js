@@ -18,6 +18,12 @@ const appView = document.querySelector("#app-view");
 const authForm = document.querySelector("#auth-form");
 const authEmailInput = document.querySelector("#auth-email");
 const authPasswordInput = document.querySelector("#auth-password");
+const authPasswordToggle = document.querySelector("#auth-password-toggle");
+const authConfirmPasswordLabel = document.querySelector("#auth-confirm-password-label");
+const authConfirmPasswordField = document.querySelector("#auth-confirm-password-field");
+const authConfirmPasswordInput = document.querySelector("#auth-confirm-password");
+const authConfirmPasswordToggle = document.querySelector("#auth-confirm-password-toggle");
+const authPasswordHint = document.querySelector("#auth-password-hint");
 const authSubmit = document.querySelector("#auth-submit");
 const authSwitch = document.querySelector("#auth-switch");
 const authMessage = document.querySelector("#auth-message");
@@ -66,6 +72,15 @@ function setFormMessage(message) {
   formMessage.textContent = message;
 }
 
+function setPasswordVisibility(input, toggle, isVisible) {
+  input.type = isVisible ? "text" : "password";
+  toggle.setAttribute("aria-pressed", String(isVisible));
+  toggle.setAttribute(
+    "aria-label",
+    `${isVisible ? "Hide" : "Show"} ${toggle.dataset.passwordLabel}`
+  );
+}
+
 function setAuthMode(mode) {
   authMode = mode;
   const isSignUp = mode === "signup";
@@ -73,7 +88,15 @@ function setAuthMode(mode) {
   authSubmit.textContent = isSignUp ? "Create account" : "Sign in";
   authSwitch.textContent = isSignUp ? "Already have an account? Sign in" : "New to EXPSAVE? Create an account";
   authPasswordInput.autocomplete = isSignUp ? "new-password" : "current-password";
-  authPasswordInput.minLength = isSignUp ? 6 : 1;
+  authPasswordInput.minLength = isSignUp ? 12 : 1;
+  authPasswordHint.hidden = !isSignUp;
+  authConfirmPasswordLabel.hidden = !isSignUp;
+  authConfirmPasswordField.hidden = !isSignUp;
+  authConfirmPasswordInput.disabled = !isSignUp;
+  authConfirmPasswordInput.required = isSignUp;
+  if (!isSignUp) authConfirmPasswordInput.value = "";
+  setPasswordVisibility(authPasswordInput, authPasswordToggle, false);
+  setPasswordVisibility(authConfirmPasswordInput, authConfirmPasswordToggle, false);
   setAuthMessage("");
 }
 
@@ -221,6 +244,22 @@ authSwitch.addEventListener("click", () => {
   setAuthMode(authMode === "signin" ? "signup" : "signin");
 });
 
+authPasswordToggle.addEventListener("click", () => {
+  setPasswordVisibility(
+    authPasswordInput,
+    authPasswordToggle,
+    authPasswordInput.type === "password"
+  );
+});
+
+authConfirmPasswordToggle.addEventListener("click", () => {
+  setPasswordVisibility(
+    authConfirmPasswordInput,
+    authConfirmPasswordToggle,
+    authConfirmPasswordInput.type === "password"
+  );
+});
+
 authForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!supabaseClient) {
@@ -234,6 +273,21 @@ authForm.addEventListener("submit", async (event) => {
   try {
     const email = authEmailInput.value.trim();
     const password = authPasswordInput.value;
+    if (authMode === "signup") {
+      if (password.length < 12) {
+        setAuthMessage("Use a password with at least 12 characters.");
+        return;
+      }
+      if (!/\d/.test(password) || !/[^A-Za-z0-9\s]/.test(password)) {
+        setAuthMessage("Include at least one number and one special character in your password.");
+        return;
+      }
+      if (password !== authConfirmPasswordInput.value) {
+        setAuthMessage("The passwords don't match.");
+        return;
+      }
+    }
+
     const result = authMode === "signup"
       ? await supabaseClient.auth.signUp({ email, password })
       : await supabaseClient.auth.signInWithPassword({ email, password });

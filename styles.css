@@ -179,6 +179,84 @@ h1 {
   display: block;
 }
 
+.auth-password-field {
+  display: flex;
+  width: 100%;
+  height: 42px;
+  align-items: center;
+  margin-bottom: 15px;
+  border: 1px solid #e6ebe6;
+  border-radius: 9px;
+  background: #fbfcfb;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.auth-password-field:focus-within {
+  border-color: #77a386;
+  box-shadow: 0 0 0 3px rgba(77, 132, 92, 0.1);
+}
+
+.auth-password-field input {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 0 12px;
+  border: 0;
+  border-radius: inherit;
+  outline: 0;
+  color: var(--ink);
+  background: transparent;
+  font-size: 12px;
+}
+
+.password-toggle {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  color: #78837b;
+  background: transparent;
+  cursor: pointer;
+}
+
+.password-toggle:hover {
+  color: var(--green);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid #9dc6a5;
+  outline-offset: -3px;
+}
+
+.password-toggle svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.password-toggle[aria-pressed="true"] .eye-slash {
+  display: none;
+}
+
+.auth-panel form > [hidden] {
+  display: none;
+}
+
+.password-hint {
+  margin: -5px 0 12px;
+  color: #78837b;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
 .auth-switch {
   width: 100%;
   padding: 8px 0 0;
