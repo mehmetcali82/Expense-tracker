@@ -41,6 +41,14 @@ This inserts a real load into the configured Supabase project. Use a test projec
 ## Tests
 
 ```powershell
+npm start
+```
+
+Open `http://127.0.0.1:4173/` in your browser. Stop the local server with `Ctrl+C`.
+
+Run the automated checks separately:
+
+```powershell
 npm test
 npx playwright install chromium
 npm run test:e2e

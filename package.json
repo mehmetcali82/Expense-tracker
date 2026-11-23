@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "start": "node scripts/serve.mjs",
     "test": "node --test tests/import-loads.test.mjs",
     "test:e2e": "playwright test --config=playwright.config.mjs",
     "test:e2e:headed": "playwright test --config=playwright.config.mjs --headed",
