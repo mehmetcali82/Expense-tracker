@@ -1,0 +1,131 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Program",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}\\app.js"
+        }
+    ],
+    "database": {
+        "migrations": {
+            "tableName": "knex_migrations",
+            "directory": "./migrations"
+        },
+        "seeds": {
+            "directory": "./seeds"
+        }
+    },
+    "tables": [
+        {
+            "name": "transactions",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "primaryKey": true,
+                    "default": "gen_random_uuid()"
+                },
+                {
+                    "name": "user_id",
+                    "type": "uuid",
+                    "references": "auth.users(id)",
+                    "notNull": true
+                },
+                {
+                    "name": "description",
+                    "type": "text",
+                    "notNull": true
+                },
+                {
+                    "name": "amount",
+                    "type": "numeric",
+                    "precision": 12,
+                    "scale": 2,
+                    "notNull": true
+                },
+                {
+                    "name": "category",
+                    "type": "text",
+                    "notNull": true
+                },
+                {
+                    "name": "date",
+                    "type": "date",
+                    "notNull": true
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamptz",
+                    "default": "now()"
+                }
+            ]
+        }
+    ],
+    "policies": [
+        {
+            "name": "Users read their expenses",
+            "table": "expenses",
+            "action": "select",
+            "using": "(select auth.uid()) = user_id"
+        },
+        {
+            "name": "Users add their expenses",
+            "table": "expenses",
+            "action": "insert",
+            "withCheck": "(select auth.uid()) = user_id"
+        },
+        {
+            "name": "Users delete their expenses",
+            "table": "expenses",
+            "action": "delete",
+            "using": "(select auth.uid()) = user_id"
+        }
+    ],
+    "functions": [
+        {
+            "name": "insert_expense",
+            "params": [
+                {
+                    "name": "description",
+                    "type": "text"
+                },
+                {
+                    "name": "amount",
+                    "type": "numeric"
+                },
+                {
+                    "name": "category",
+                    "type": "text"
+                },
+                {
+                    "name": "date",
+                    "type": "date"
+                }
+            ],
+            "returns": "void",
+            "language": "plpgsql",
+            "definition": "begin\n  insert into expenses (description, amount, category, date, user_id)\n  values (description, amount, category, date, (select auth.uid()));\nend;"
+        }
+    ],
+    "deleteExpense": {
+        "description": "Delete an expense by ID",
+        "params": [
+            {
+                "name": "expenseId",
+                "type": "uuid"
+            }
+        ],
+        "returns": "void",
+        "language": "plpgsql",
+        "definition": "begin\n  delete from expenses where id = expenseId;\nend;"
+    }
+}
