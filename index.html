@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f7f4" />
+    <title>Daybook — Expense tracker</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Daybook home">
+          <span class="brand-mark" aria-hidden="true">$</span>
+          <span>daybook</span>
+        </a>
+        <span class="local-note"><span class="status-dot"></span> Saved on this device</span>
+      </header>
+
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">YOUR MONEY, IN FOCUS</p>
+        <h1 id="page-title">A little more clarity.</h1>
+        <p class="intro-copy">Keep track of what you spend, one entry at a time.</p>
+      </section>
+
+      <section class="summary-grid" aria-label="Expense summary">
+        <article class="summary-card summary-card-primary">
+          <p class="summary-label">This month</p>
+          <p class="summary-value" id="month-total">$0.00</p>
+          <p class="summary-foot" id="month-label">Your spending so far</p>
+        </article>
+        <article class="summary-card">
+          <p class="summary-label">All time</p>
+          <p class="summary-value" id="all-time-total">$0.00</p>
+          <p class="summary-foot">Across all your entries</p>
+        </article>
+        <article class="summary-card">
+          <p class="summary-label">Expenses logged</p>
+          <p class="summary-value" id="expense-count">0</p>
+          <p class="summary-foot">Every entry counts</p>
+        </article>
+      </section>
+
+      <div class="content-grid">
+        <section class="panel form-panel" aria-labelledby="form-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">NEW ENTRY</p>
+              <h2 id="form-title">Add an expense</h2>
+            </div>
+            <span class="heading-icon" aria-hidden="true">+</span>
+          </div>
+
+          <form id="expense-form">
+            <label for="description">What did you spend on?</label>
+            <input id="description" name="description" type="text" maxlength="80" placeholder="e.g. Coffee with Sam" required />
+
+            <div class="field-row">
+              <div class="field-group">
+                <label for="amount">Amount</label>
+                <div class="amount-input">
+                  <span aria-hidden="true">$</span>
+                  <input id="amount" name="amount" type="number" min="0.01" max="999999999" step="0.01" placeholder="0.00" required />
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="category">Category</label>
+                <select id="category" name="category">
+                  <option>Food &amp; drink</option>
+                  <option>Transport</option>
+                  <option>Shopping</option>
+                  <option>Home</option>
+                  <option>Bills</option>
+                  <option>Health</option>
+                  <option>Entertainment</option>
+                  <option>Other</option>
+                </select>
+              </div>
+            </div>
+
+            <label for="date">Date</label>
+            <input id="date" name="date" type="date" required />
+            <button class="submit-button" type="submit">Add expense <span aria-hidden="true">↗</span></button>
+            <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+
+        <section class="panel history-panel" aria-labelledby="history-title">
+          <div class="panel-heading history-heading">
+            <div>
+              <p class="eyebrow">YOUR ACTIVITY</p>
+              <h2 id="history-title">Recent expenses</h2>
+            </div>
+            <span class="entry-count" id="history-count">0 entries</span>
+          </div>
+          <ul class="expense-list" id="expense-list" aria-live="polite"></ul>
+          <div class="empty-state" id="empty-state">
+            <span class="empty-icon" aria-hidden="true">✳</span>
+            <h3>A fresh start</h3>
+            <p>Your expenses will show up here once you add your first one.</p>
+          </div>
+        </section>
+      </div>
+      <footer>Small steps make a big difference.</footer>
+    </main>
+  </body>
+</html>
