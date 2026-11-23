@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f5f7f4" />
-    <title>EXPSAVE — Your expenses, in focus</title>
+    <title>HaulBoard — Freight, in motion</title>
     <link rel="stylesheet" href="styles.css" />
     <script src="supabase-config.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -13,27 +13,62 @@
   <body>
     <main class="app-shell">
       <header class="topbar">
-        <a class="brand" href="#" aria-label="EXPSAVE home">
-          <span class="brand-mark" aria-hidden="true">$</span>
-          <span>EXPSAVE</span>
+        <a class="brand" href="#" aria-label="HaulBoard home">
+          <span class="brand-mark" aria-hidden="true">H</span>
+          <span>HaulBoard</span>
         </a>
-        <div class="account-area">
-          <span class="local-note"><span class="status-dot"></span> Your secure expense space</span>
-          <span id="account-email" class="account-email"></span>
-          <button id="sign-out" class="sign-out-button" type="button" hidden>Sign out</button>
+        <div class="header-actions">
+          <div id="menu-wrap" class="menu-wrap">
+            <button id="menu-toggle" class="menu-toggle" type="button" aria-label="Open navigation menu" aria-controls="main-menu" aria-expanded="false" hidden>
+              <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+            </button>
+            <nav id="main-menu" class="main-menu" aria-label="Main navigation" hidden>
+              <a href="#workspace-view" data-menu-role="all">Dashboard</a>
+              <a href="#available-loads" data-menu-role="driver">Load board</a>
+              <a href="#driver-bookings" data-menu-role="driver">My bookings</a>
+              <a href="#broker-post-panel" data-menu-role="broker" data-menu-approved="true">Post a load</a>
+              <a href="#broker-loads" data-menu-role="broker" data-menu-approved="true">Posted loads</a>
+            </nav>
+          </div>
+          <div id="notifications-wrap" class="notifications-wrap" hidden>
+            <button id="notifications-toggle" class="notifications-toggle" type="button" aria-label="Open in-app notifications" aria-controls="notifications-panel" aria-expanded="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+                <path d="M10 21h4" />
+              </svg>
+              <span>Updates</span>
+              <span id="notification-count" class="notification-count" hidden>0</span>
+            </button>
+            <section id="notifications-panel" class="notifications-panel" aria-label="In-app notifications" hidden>
+              <div class="notifications-heading">
+                <div>
+                  <p class="eyebrow">IN-APP UPDATES</p>
+                  <h2>Notifications</h2>
+                </div>
+                <button id="notifications-close" class="notification-close" type="button" aria-label="Close notifications">×</button>
+              </div>
+              <ul id="notification-list" class="notification-list" aria-live="polite"></ul>
+              <div id="notifications-empty" class="notification-empty" hidden>No updates yet.</div>
+            </section>
+          </div>
+          <div class="account-area">
+            <span id="role-badge" class="role-badge" hidden></span>
+            <span id="account-email" class="account-email"></span>
+            <button id="sign-out" class="secondary-button" type="button" hidden>Sign out</button>
+          </div>
         </div>
       </header>
 
       <section id="auth-view" class="auth-view" aria-labelledby="auth-title">
         <div class="auth-intro">
-          <p class="eyebrow">YOUR MONEY, IN FOCUS</p>
-          <h1 id="auth-title">A little more clarity.</h1>
-          <p class="intro-copy">A personal space for every dollar you spend.</p>
+          <p class="eyebrow">THE FREIGHT MARKETPLACE</p>
+          <h1 id="auth-title">Find your next load.</h1>
+          <p class="intro-copy">A clearer board for the people who keep freight moving.</p>
         </div>
         <section class="panel auth-panel" aria-labelledby="auth-mode-label">
           <div class="panel-heading">
             <div>
-              <p class="eyebrow">WELCOME TO EXPSAVE</p>
+              <p class="eyebrow">WELCOME TO HAULBOARD</p>
               <h2 id="auth-mode-label">Welcome back</h2>
             </div>
             <span class="heading-icon" aria-hidden="true">↗</span>
@@ -41,6 +76,27 @@
           <form id="auth-form">
             <label for="auth-email">Email</label>
             <input id="auth-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+
+            <div id="signup-fields" hidden>
+              <label for="auth-full-name">Full name</label>
+              <input id="auth-full-name" name="full-name" type="text" autocomplete="name" placeholder="Your name" disabled />
+
+              <label for="auth-phone">Phone</label>
+              <input id="auth-phone" name="phone" type="tel" autocomplete="tel" placeholder="Best number to reach you" disabled />
+
+              <label for="auth-account-type">Account type</label>
+              <select id="auth-account-type" name="account-type" disabled>
+                <option value="driver">Truck driver</option>
+                <option value="broker">Load provider / broker</option>
+              </select>
+
+              <div id="company-field" hidden>
+                <label for="auth-company-name">Brokerage / company name</label>
+                <input id="auth-company-name" name="company-name" type="text" autocomplete="organization" placeholder="Company name" disabled />
+                <p class="field-hint">Broker accounts are reviewed before they can post loads.</p>
+              </div>
+            </div>
+
             <label for="auth-password">Password</label>
             <div class="auth-password-field">
               <input id="auth-password" name="password" type="password" autocomplete="current-password" minlength="1" placeholder="Enter your password" required />
@@ -53,112 +109,231 @@
               </button>
             </div>
             <p id="auth-password-hint" class="password-hint" hidden>Use at least 12 characters, including a number and a special character.</p>
-            <label id="auth-confirm-password-label" for="auth-confirm-password" hidden>Confirm password</label>
-            <div id="auth-confirm-password-field" class="auth-password-field" hidden>
-              <input id="auth-confirm-password" name="confirm-password" type="password" autocomplete="new-password" placeholder="Re-enter your password" disabled />
-              <button id="auth-confirm-password-toggle" class="password-toggle" type="button" data-password-label="confirm password" aria-label="Show confirm password" aria-controls="auth-confirm-password" aria-pressed="false">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
-                  <circle cx="12" cy="12" r="3" />
-                  <path class="eye-slash" d="m3 3 18 18" />
-                </svg>
-              </button>
+
+            <div id="auth-confirm-password-group" hidden>
+              <label for="auth-confirm-password">Confirm password</label>
+              <div class="auth-password-field">
+                <input id="auth-confirm-password" name="confirm-password" type="password" autocomplete="new-password" placeholder="Re-enter your password" disabled />
+                <button id="auth-confirm-password-toggle" class="password-toggle" type="button" data-password-label="confirm password" aria-label="Show confirm password" aria-controls="auth-confirm-password" aria-pressed="false">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+                    <circle cx="12" cy="12" r="3" />
+                    <path class="eye-slash" d="m3 3 18 18" />
+                  </svg>
+                </button>
+              </div>
             </div>
-            <button id="auth-submit" class="submit-button" type="submit">Sign in</button>
+
+            <button id="auth-submit" class="primary-button" type="submit">Sign in</button>
             <p id="auth-message" class="form-message" role="status" aria-live="polite"></p>
           </form>
-          <button id="auth-switch" class="auth-switch" type="button">New to EXPSAVE? Create an account</button>
-          <p id="setup-message" class="setup-message" hidden>Finish Supabase setup to turn on accounts. Add your project URL and publishable key in <code>supabase-config.js</code>, then run the SQL in <code>supabase-schema.sql</code>.</p>
+          <button id="auth-switch" class="auth-switch" type="button">New to HaulBoard? Create an account</button>
+          <p id="setup-message" class="setup-message" hidden>Configure the Supabase project in <code>supabase-config.js</code> and run <code>supabase-schema.sql</code> in its SQL Editor.</p>
         </section>
       </section>
 
-      <section id="app-view" hidden>
-      <section class="intro" aria-labelledby="page-title">
-        <p class="eyebrow">YOUR MONEY, IN FOCUS</p>
-        <h1 id="page-title">A little more clarity.</h1>
-        <p class="intro-copy">Keep track of what you spend, one entry at a time.</p>
-      </section>
+      <section id="workspace-view" hidden>
+        <section class="intro dashboard-intro" aria-labelledby="workspace-title">
+          <p class="eyebrow">THE FREIGHT MARKETPLACE</p>
+          <h1 id="workspace-title">Your freight workspace.</h1>
+          <p id="workspace-subtitle" class="intro-copy"></p>
+        </section>
 
-      <section class="summary-grid" aria-label="Expense summary">
-        <article class="summary-card summary-card-primary">
-          <p class="summary-label">This month</p>
-          <p class="summary-value" id="month-total">$0.00</p>
-          <p class="summary-foot" id="month-label">Your spending so far</p>
-        </article>
-        <article class="summary-card">
-          <p class="summary-label">All time</p>
-          <p class="summary-value" id="all-time-total">$0.00</p>
-          <p class="summary-foot">Across all your entries</p>
-        </article>
-        <article class="summary-card">
-          <p class="summary-label">Expenses logged</p>
-          <p class="summary-value" id="expense-count">0</p>
-          <p class="summary-foot">Every entry counts</p>
-        </article>
-      </section>
+        <p id="workspace-message" class="form-message workspace-message" role="status" aria-live="polite"></p>
 
-      <div class="content-grid">
-        <section class="panel form-panel" aria-labelledby="form-title">
-          <div class="panel-heading">
+        <section id="broker-pending" class="notice-panel" hidden>
+          <p class="eyebrow">BROKER ACCOUNT REVIEW</p>
+          <h2>Your account is awaiting approval</h2>
+          <p>We review load providers before they can post freight. Contact the marketplace administrator with this profile ID:</p>
+          <code id="profile-id"></code>
+        </section>
+
+        <section class="summary-grid" aria-label="Freight summary">
+          <article class="summary-card summary-card-primary">
+            <p id="summary-first-label" class="summary-label">Available loads</p>
+            <p id="summary-first-value" class="summary-value">0</p>
+            <p id="summary-first-foot" class="summary-foot">Loads ready to book</p>
+          </article>
+          <article class="summary-card">
+            <p id="summary-second-label" class="summary-label">My bookings</p>
+            <p id="summary-second-value" class="summary-value">0</p>
+            <p id="summary-second-foot" class="summary-foot">Loads assigned to you</p>
+          </article>
+          <article class="summary-card">
+            <p id="summary-third-label" class="summary-label">Delivered</p>
+            <p id="summary-third-value" class="summary-value">0</p>
+            <p id="summary-third-foot" class="summary-foot">Completed loads</p>
+          </article>
+        </section>
+
+        <section id="driver-dashboard" hidden>
+          <div class="board-toolbar">
             <div>
-              <p class="eyebrow">NEW ENTRY</p>
-              <h2 id="form-title">Add an expense</h2>
+              <p class="eyebrow">LOAD BOARD</p>
+              <h2>Available freight</h2>
             </div>
-            <span class="heading-icon" aria-hidden="true">+</span>
+            <div class="filter-row">
+              <label class="visually-hidden" for="load-search">Search routes or commodity</label>
+              <input id="load-search" type="search" placeholder="Search city or commodity" />
+              <label class="visually-hidden" for="equipment-filter">Filter by equipment</label>
+              <select id="equipment-filter">
+                <option value="">All equipment</option>
+                <option>Dry van</option>
+                <option>Reefer</option>
+                <option>Flatbed</option>
+                <option>Step deck</option>
+                <option>Power only</option>
+                <option>Box truck</option>
+                <option>Other</option>
+              </select>
+            </div>
           </div>
 
-          <form id="expense-form">
-            <label for="description">What did you spend on?</label>
-            <input id="description" name="description" type="text" maxlength="80" placeholder="e.g. Coffee with Sam" required />
+          <div class="marketplace-grid">
+            <section class="panel" aria-labelledby="available-heading">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">READY TO BOOK</p>
+                  <h2 id="available-heading">Load board</h2>
+                </div>
+                <span id="available-count" class="entry-count">0 loads</span>
+              </div>
+              <ul id="available-loads" class="load-list" aria-live="polite"></ul>
+              <div id="available-empty" class="empty-state" hidden>
+                <span class="empty-icon" aria-hidden="true">↗</span>
+                <h3>No matching loads</h3>
+                <p>Try a different search or check back for new freight.</p>
+              </div>
+            </section>
 
-            <div class="field-row">
-              <div class="field-group">
-                <label for="amount">Amount</label>
-                <div class="amount-input">
-                  <span aria-hidden="true">$</span>
-                  <input id="amount" name="amount" type="number" min="0.01" max="999999999" step="0.01" placeholder="0.00" required />
+            <section class="panel" aria-labelledby="driver-bookings-heading">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">YOUR HAULS</p>
+                  <h2 id="driver-bookings-heading">My bookings</h2>
+                </div>
+                <span id="driver-booking-count" class="entry-count">0 bookings</span>
+              </div>
+              <ul id="driver-bookings" class="load-list" aria-live="polite"></ul>
+              <div id="driver-bookings-empty" class="empty-state" hidden>
+                <span class="empty-icon" aria-hidden="true">⌁</span>
+                <h3>No bookings yet</h3>
+                <p>Book an available load and it will appear here.</p>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section id="broker-dashboard" hidden>
+          <section id="broker-post-panel" class="panel broker-post-panel" hidden aria-labelledby="post-load-heading">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">POST FREIGHT</p>
+                <h2 id="post-load-heading">Create a load</h2>
+              </div>
+              <span class="heading-icon" aria-hidden="true">+</span>
+            </div>
+            <form id="load-form">
+              <div class="field-row">
+                <div class="field-group">
+                  <label for="origin-city">Origin city</label>
+                  <input id="origin-city" name="origin-city" type="text" maxlength="80" required />
+                </div>
+                <div class="field-group">
+                  <label for="origin-state">State / province</label>
+                  <input id="origin-state" name="origin-state" type="text" maxlength="40" placeholder="e.g. TX" required />
                 </div>
               </div>
-              <div class="field-group">
-                <label for="category">Category</label>
-                <select id="category" name="category">
-                  <option>Food &amp; drink</option>
-                  <option>Transport</option>
-                  <option>Shopping</option>
-                  <option>Home</option>
-                  <option>Bills</option>
-                  <option>Health</option>
-                  <option>Entertainment</option>
-                  <option>Other</option>
-                </select>
+              <div class="field-row">
+                <div class="field-group">
+                  <label for="destination-city">Destination city</label>
+                  <input id="destination-city" name="destination-city" type="text" maxlength="80" required />
+                </div>
+                <div class="field-group">
+                  <label for="destination-state">State / province</label>
+                  <input id="destination-state" name="destination-state" type="text" maxlength="40" placeholder="e.g. GA" required />
+                </div>
               </div>
-            </div>
+              <div class="field-row">
+                <div class="field-group">
+                  <label for="pickup-date">Pickup date</label>
+                  <input id="pickup-date" name="pickup-date" type="date" required />
+                </div>
+                <div class="field-group">
+                  <label for="delivery-date">Delivery date</label>
+                  <input id="delivery-date" name="delivery-date" type="date" required />
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field-group">
+                  <label for="equipment-type">Equipment</label>
+                  <select id="equipment-type" name="equipment-type" required>
+                    <option value="">Choose equipment</option>
+                    <option>Dry van</option>
+                    <option>Reefer</option>
+                    <option>Flatbed</option>
+                    <option>Step deck</option>
+                    <option>Power only</option>
+                    <option>Box truck</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label for="commodity">Commodity</label>
+                  <input id="commodity" name="commodity" type="text" maxlength="100" placeholder="e.g. Palletized produce" required />
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field-group">
+                  <label for="weight-lbs">Weight (lb)</label>
+                  <input id="weight-lbs" name="weight-lbs" type="number" min="1" step="1" placeholder="Optional" />
+                </div>
+                <div class="field-group">
+                  <label for="miles">Estimated miles</label>
+                  <input id="miles" name="miles" type="number" min="1" step="1" required />
+                </div>
+                <div class="field-group">
+                  <label for="rate">Driver rate (USD)</label>
+                  <input id="rate" name="rate" type="number" min="0.01" step="0.01" required />
+                </div>
+              </div>
+              <label for="public-notes">Load notes shown before booking</label>
+              <textarea id="public-notes" name="public-notes" maxlength="1000" rows="3" placeholder="Share useful load information. Keep private details below."></textarea>
 
-            <label for="date">Date</label>
-            <input id="date" name="date" type="date" required />
-            <button class="submit-button" type="submit">Add expense <span aria-hidden="true">↗</span></button>
-            <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
-          </form>
-        </section>
+              <details class="private-fields">
+                <summary>Pickup, delivery, and contact details (shown after booking)</summary>
+                <label for="pickup-address">Pickup address</label>
+                <textarea id="pickup-address" name="pickup-address" maxlength="500" rows="2"></textarea>
+                <label for="delivery-address">Delivery address</label>
+                <textarea id="delivery-address" name="delivery-address" maxlength="500" rows="2"></textarea>
+                <label for="instructions">Private instructions</label>
+                <textarea id="instructions" name="instructions" maxlength="1500" rows="3" placeholder="Check-in, appointment, or handling instructions"></textarea>
+              </details>
 
-        <section class="panel history-panel" aria-labelledby="history-title">
-          <div class="panel-heading history-heading">
-            <div>
-              <p class="eyebrow">YOUR ACTIVITY</p>
-              <h2 id="history-title">Recent expenses</h2>
+              <button class="primary-button" type="submit">Post load</button>
+              <p id="load-form-message" class="form-message" role="status" aria-live="polite"></p>
+            </form>
+          </section>
+
+          <section class="panel" aria-labelledby="broker-loads-heading">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">YOUR FREIGHT</p>
+                <h2 id="broker-loads-heading">Posted loads</h2>
+              </div>
+              <span id="broker-load-count" class="entry-count">0 loads</span>
             </div>
-            <span class="entry-count" id="history-count">0 entries</span>
-          </div>
-          <ul class="expense-list" id="expense-list" aria-live="polite"></ul>
-          <div class="empty-state" id="empty-state">
-            <span class="empty-icon" aria-hidden="true">✳</span>
-            <h3>A fresh start</h3>
-            <p>Your expenses will show up here once you add your first one.</p>
-          </div>
+            <ul id="broker-loads" class="load-list" aria-live="polite"></ul>
+            <div id="broker-loads-empty" class="empty-state" hidden>
+              <span class="empty-icon" aria-hidden="true">↗</span>
+              <h3>No loads posted</h3>
+              <p>Post your first load to get it in front of drivers.</p>
+            </div>
+          </section>
         </section>
-      </div>
-      <footer>Small steps make a big difference.</footer>
       </section>
+
+      <footer>HaulBoard · Keep freight moving.</footer>
     </main>
   </body>
 </html>

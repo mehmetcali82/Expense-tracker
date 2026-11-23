@@ -1,6 +1,14 @@
 {
+  "scripts": {
+    "test": "node --test tests/import-loads.test.mjs",
+    "test:e2e": "playwright test --config=playwright.config.mjs",
+    "import:loads": "node scripts/import-loads.mjs"
+  },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.119.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1"
   }
 }
