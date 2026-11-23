@@ -182,3 +182,20 @@ form.addEventListener("submit", (event) => {
 
 dateInput.value = new Date().toISOString().slice(0, 10);
 render();
+
+const { app, BrowserWindow } = require("electron");
+
+function createWindow() {
+  const window = new BrowserWindow({
+    width: 1200,
+    height: 800,
+  });
+
+  window.loadFile("index.html");
+}
+
+app.whenReady().then(createWindow);
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
+});
