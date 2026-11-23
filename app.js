@@ -264,7 +264,7 @@ function setAuthMode(mode) {
     input.required = isSignUp;
   }
   authPasswordInput.autocomplete = isSignUp ? "new-password" : "current-password";
-  authPasswordInput.minLength = isSignUp ? 12 : 1;
+  authPasswordInput.minLength = 1;
   authPasswordHint.hidden = !isSignUp;
   authConfirmPasswordGroup.hidden = !isSignUp;
   authConfirmPasswordInput.disabled = !isSignUp;
@@ -910,14 +910,6 @@ authForm.addEventListener("submit", async (event) => {
     let result;
 
     if (authMode === "signup") {
-      if (password.length < 12) {
-        setAuthMessage("Use a password with at least 12 characters.");
-        return;
-      }
-      if (!/\d/.test(password) || !/[^A-Za-z0-9\s]/.test(password)) {
-        setAuthMessage("Include at least one number and one special character in your password.");
-        return;
-      }
       if (password !== authConfirmPasswordInput.value) {
         setAuthMessage("The passwords don't match.");
         return;
