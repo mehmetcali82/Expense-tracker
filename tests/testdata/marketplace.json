@@ -1,0 +1,79 @@
+{
+  "users": {
+    "driver": {
+      "id": "driver-test-user",
+      "email": "driver@example.test"
+    },
+    "broker": {
+      "id": "broker-test-user",
+      "email": "broker@example.test"
+    }
+  },
+  "profiles": {
+    "driver": {
+      "account_type": "driver",
+      "full_name": "Test Driver",
+      "company_name": null,
+      "phone": "555-0100",
+      "broker_approved": false
+    },
+    "broker": {
+      "account_type": "broker",
+      "full_name": "Test Broker",
+      "company_name": "Demo Freight Co.",
+      "phone": "555-0100",
+      "broker_approved": true
+    }
+  },
+  "signup": {
+    "full_name": "Test Driver",
+    "phone": "555-0100",
+    "email": "new-driver@example.test",
+    "password": "ValidPassword1!",
+    "mismatched_password": "DifferentPassword2!"
+  },
+  "driver_load": {
+    "id": "load-1",
+    "broker_id": "broker-test-user",
+    "broker_company": "Demo Freight Co.",
+    "origin_city": "Denver",
+    "origin_state": "CO",
+    "destination_city": "Dallas",
+    "destination_state": "TX",
+    "pickup_days_from_today": 2,
+    "delivery_days_from_today": 3,
+    "equipment_type": "Dry van",
+    "weight_lbs": 38000,
+    "commodity": "Palletized goods",
+    "miles": 794,
+    "rate": 2250,
+    "public_notes": "Ready for booking",
+    "status": "open",
+    "booked_by": null
+  },
+  "private_details": {
+    "pickup_address": "123 Test Pickup Road",
+    "delivery_address": "456 Test Delivery Road",
+    "broker_contact_name": "Test Broker",
+    "broker_contact_phone": "555-0100",
+    "broker_contact_email": "broker@example.test",
+    "instructions": "Test instructions"
+  },
+  "broker_load_form": {
+    "origin_city": "Denver",
+    "origin_state": "CO",
+    "destination_city": "Dallas",
+    "destination_state": "TX",
+    "pickup_days_from_today": 2,
+    "delivery_days_from_today": 3,
+    "equipment_type": "Dry van",
+    "commodity": "Palletized goods",
+    "weight_lbs": "38000",
+    "miles": "794",
+    "rate": "2250",
+    "public_notes": "Browser test load",
+    "pickup_address": "123 Broker Test Road",
+    "delivery_address": "456 Broker Test Road",
+    "instructions": "Test only"
+  }
+}

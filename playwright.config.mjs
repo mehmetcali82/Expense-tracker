@@ -6,7 +6,10 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:4173",
     browserName: "chromium",
-    headless: true,
+    headless: false,
+    launchOptions: {
+      slowMo: 700,
+    },
   },
   webServer: {
     command: "node tests/e2e/server.mjs",

@@ -46,4 +46,4 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-The browser tests use a mocked Supabase client, so they do not create accounts or change live marketplace data.
+`npm run test:e2e` opens a visible Chromium window and pauses 700 ms between browser actions so you can follow along. The browser tests use a mocked Supabase client, so they do not create accounts or change live marketplace data.

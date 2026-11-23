@@ -1,4 +1,9 @@
 import { expect, test } from "@playwright/test";
+import { readFile } from "node:fs/promises";
+
+const testData = JSON.parse(
+  await readFile(new URL("../testdata/marketplace.json", import.meta.url), "utf8")
+);
 
 function futureDate(offsetDays = 0) {
   const date = new Date();
@@ -10,18 +15,11 @@ function futureDate(offsetDays = 0) {
 }
 
 async function installSupabaseMock(page, role, loads = [], signedOut = false) {
-  const signedInUser = {
-    id: `${role}-test-user`,
-    email: `${role}@example.test`,
-  };
+  const signedInUser = { ...testData.users[role] };
   const profile = {
+    ...testData.profiles[role],
     id: signedInUser.id,
-    account_type: role,
-    full_name: role === "broker" ? "Test Broker" : "Test Driver",
-    company_name: role === "broker" ? "Demo Freight Co." : null,
-    phone: "555-0100",
     email: signedInUser.email,
-    broker_approved: role === "broker",
   };
   const data = {
     user: signedOut ? null : signedInUser,
@@ -29,13 +27,8 @@ async function installSupabaseMock(page, role, loads = [], signedOut = false) {
     loads,
     bookings: [],
     privateDetails: loads.map((load) => ({
+      ...testData.private_details,
       load_id: load.id,
-      pickup_address: "123 Test Pickup Road",
-      delivery_address: "456 Test Delivery Road",
-      broker_contact_name: "Test Broker",
-      broker_contact_phone: "555-0100",
-      broker_contact_email: "broker@example.test",
-      instructions: "Test instructions",
     })),
     notifications: [],
   };
@@ -186,40 +179,28 @@ test("signup validates matching passwords and displays the confirmation state", 
   await installSupabaseMock(page, "driver", [], true);
   await page.goto("/");
   await page.getByRole("button", { name: "New to HaulBoard? Create an account" }).click();
-  await page.getByLabel("Full name").fill("Test Driver");
-  await page.getByLabel("Phone").fill("555-0100");
-  await page.getByLabel("Email").fill("new-driver@example.test");
-  await page.getByLabel("Password", { exact: true }).fill("ValidPassword1!");
-  await page.getByRole("textbox", { name: "Confirm password" }).fill("DifferentPassword2!");
+  await page.getByLabel("Full name").fill(testData.signup.full_name);
+  await page.getByLabel("Phone").fill(testData.signup.phone);
+  await page.getByLabel("Email").fill(testData.signup.email);
+  await page.getByLabel("Password", { exact: true }).fill(testData.signup.password);
+  await page
+    .getByRole("textbox", { name: "Confirm password" })
+    .fill(testData.signup.mismatched_password);
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(page.getByText("The passwords don't match.")).toBeVisible();
 
-  await page.getByRole("textbox", { name: "Confirm password" }).fill("ValidPassword1!");
+  await page.getByRole("textbox", { name: "Confirm password" }).fill(testData.signup.password);
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(page.getByText(/Check your email to confirm your account/)).toBeVisible();
 });
 
 test("driver books a load, advances status, and reads an in-app notification", async ({ page }) => {
-  const load = {
-    id: "load-1",
-    broker_id: "broker-test-user",
-    broker_company: "Demo Freight Co.",
-    origin_city: "Denver",
-    origin_state: "CO",
-    destination_city: "Dallas",
-    destination_state: "TX",
-    pickup_date: futureDate(2),
-    delivery_date: futureDate(3),
-    equipment_type: "Dry van",
-    weight_lbs: 38000,
-    commodity: "Palletized goods",
-    miles: 794,
-    rate: 2250,
-    public_notes: "Ready for booking",
-    status: "open",
-    booked_by: null,
-    created_at: new Date().toISOString(),
-  };
+  const load = { ...testData.driver_load };
+  load.pickup_date = futureDate(load.pickup_days_from_today);
+  load.delivery_date = futureDate(load.delivery_days_from_today);
+  delete load.pickup_days_from_today;
+  delete load.delivery_days_from_today;
+  load.created_at = new Date().toISOString();
   await installSupabaseMock(page, "driver", [load]);
   await page.goto("/");
   await expect(page.locator("#available-loads .load-card")).toHaveCount(1);
@@ -234,7 +215,9 @@ test("driver books a load, advances status, and reads an in-app notification", a
   await page.getByRole("button", { name: "Book this load" }).click();
   await expect(page.locator("#driver-bookings")).toContainText("booked");
   await page.getByRole("button", { name: "Show full details" }).click();
-  await expect(page.locator("#driver-bookings")).toContainText("123 Test Pickup Road");
+  await expect(page.locator("#driver-bookings")).toContainText(
+    testData.private_details.pickup_address
+  );
 
   await page.getByRole("button", { name: "Mark picked up" }).click();
   await expect(page.locator("#driver-bookings")).toContainText("in transit");
@@ -248,28 +231,31 @@ test("driver books a load, advances status, and reads an in-app notification", a
 });
 
 test("approved broker can create a load", async ({ page }) => {
+  const load = testData.broker_load_form;
   await installSupabaseMock(page, "broker");
   await page.goto("/");
   await expect(page.locator("#broker-dashboard")).toBeVisible();
 
-  await page.getByLabel("Origin city").fill("Denver");
-  await page.getByLabel("State / province").nth(0).fill("CO");
-  await page.getByLabel("Destination city").fill("Dallas");
-  await page.getByLabel("State / province").nth(1).fill("TX");
-  await page.getByLabel("Pickup date").fill(futureDate(2));
-  await page.getByLabel("Delivery date").fill(futureDate(3));
-  await page.getByLabel("Equipment", { exact: true }).selectOption("Dry van");
-  await page.getByLabel("Commodity", { exact: true }).fill("Palletized goods");
-  await page.getByLabel("Weight (lb)").fill("38000");
-  await page.getByLabel("Estimated miles").fill("794");
-  await page.getByLabel("Driver rate (USD)").fill("2250");
-  await page.getByLabel("Load notes shown before booking").fill("Browser test load");
+  await page.getByLabel("Origin city").fill(load.origin_city);
+  await page.getByLabel("State / province").nth(0).fill(load.origin_state);
+  await page.getByLabel("Destination city").fill(load.destination_city);
+  await page.getByLabel("State / province").nth(1).fill(load.destination_state);
+  await page.getByLabel("Pickup date").fill(futureDate(load.pickup_days_from_today));
+  await page.getByLabel("Delivery date").fill(futureDate(load.delivery_days_from_today));
+  await page.getByLabel("Equipment", { exact: true }).selectOption(load.equipment_type);
+  await page.getByLabel("Commodity", { exact: true }).fill(load.commodity);
+  await page.getByLabel("Weight (lb)").fill(load.weight_lbs);
+  await page.getByLabel("Estimated miles").fill(load.miles);
+  await page.getByLabel("Driver rate (USD)").fill(load.rate);
+  await page.getByLabel("Load notes shown before booking").fill(load.public_notes);
   await page.locator(".private-fields summary").click();
-  await page.getByLabel("Pickup address").fill("123 Broker Test Road");
-  await page.getByLabel("Delivery address").fill("456 Broker Test Road");
-  await page.getByLabel("Private instructions").fill("Test only");
+  await page.getByLabel("Pickup address").fill(load.pickup_address);
+  await page.getByLabel("Delivery address").fill(load.delivery_address);
+  await page.getByLabel("Private instructions").fill(load.instructions);
   await page.getByRole("button", { name: "Post load" }).click();
   await expect(page.getByText("Load posted to the driver board.")).toBeVisible();
-  await expect(page.locator("#broker-loads")).toContainText("Denver, CO");
+  await expect(page.locator("#broker-loads")).toContainText(
+    `${load.origin_city}, ${load.origin_state}`
+  );
   await expect(page.locator("#broker-loads")).toContainText("$2,250.00");
 });
