@@ -1,9 +1,30 @@
-const STORAGE_KEY = "daybook-expenses-v1";
+const createClient = window.supabase?.createClient;
+const supabaseUrl = window.EXPSAVE_SUPABASE_URL;
+const supabaseKey = window.EXPSAVE_SUPABASE_ANON_KEY;
+const supabaseConfigured =
+  supabaseUrl &&
+  supabaseKey &&
+  !supabaseUrl.includes("YOUR_SUPABASE") &&
+  !supabaseKey.includes("YOUR_SUPABASE");
+const supabaseClient = supabaseConfigured ? createClient(supabaseUrl, supabaseKey) : null;
+
 const currency = new Intl.NumberFormat(undefined, {
   style: "currency",
   currency: "USD",
 });
 
+const authView = document.querySelector("#auth-view");
+const appView = document.querySelector("#app-view");
+const authForm = document.querySelector("#auth-form");
+const authEmailInput = document.querySelector("#auth-email");
+const authPasswordInput = document.querySelector("#auth-password");
+const authSubmit = document.querySelector("#auth-submit");
+const authSwitch = document.querySelector("#auth-switch");
+const authMessage = document.querySelector("#auth-message");
+const authModeLabel = document.querySelector("#auth-mode-label");
+const setupMessage = document.querySelector("#setup-message");
+const accountEmail = document.querySelector("#account-email");
+const signOutButton = document.querySelector("#sign-out");
 const form = document.querySelector("#expense-form");
 const descriptionInput = document.querySelector("#description");
 const amountInput = document.querySelector("#amount");
@@ -24,42 +45,58 @@ const categoryIcons = {
   Other: "✳",
 };
 
-function loadExpenses() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return [];
+let expenses = [];
+let authMode = "signin";
+let currentUser = null;
 
-    const parsed = JSON.parse(saved);
-    if (!Array.isArray(parsed)) throw new Error("Saved expenses are not a list.");
-
-    return parsed.filter((expense) =>
-      expense &&
-      typeof expense.id === "string" &&
-      typeof expense.description === "string" &&
-      typeof expense.amount === "number" &&
-      Number.isFinite(expense.amount) &&
-      typeof expense.category === "string" &&
-      typeof expense.date === "string"
-    );
-  } catch (error) {
-    console.error("Could not load saved expenses:", error);
-    formMessage.textContent = "We couldn't read saved expenses from this browser.";
-    return [];
-  }
+function localDateString(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
-let expenses = loadExpenses();
+function setAuthMessage(message, isError = true) {
+  authMessage.textContent = message;
+  authMessage.classList.toggle("is-error", Boolean(message) && isError);
+  authMessage.classList.toggle("is-success", Boolean(message) && !isError);
+}
 
-function saveExpenses() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
-    formMessage.textContent = "";
-    return true;
-  } catch (error) {
-    console.error("Could not save expenses:", error);
-    formMessage.textContent = "Couldn't save changes. Check your browser storage settings.";
-    return false;
-  }
+function setFormMessage(message) {
+  formMessage.textContent = message;
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  const isSignUp = mode === "signup";
+  authModeLabel.textContent = isSignUp ? "Create your account" : "Welcome back";
+  authSubmit.textContent = isSignUp ? "Create account" : "Sign in";
+  authSwitch.textContent = isSignUp ? "Already have an account? Sign in" : "New to EXPSAVE? Create an account";
+  authPasswordInput.autocomplete = isSignUp ? "new-password" : "current-password";
+  authPasswordInput.minLength = isSignUp ? 6 : 1;
+  setAuthMessage("");
+}
+
+function showSignedInView(user) {
+  currentUser = user;
+  accountEmail.textContent = user.email || "Signed in";
+  signOutButton.hidden = false;
+  authView.hidden = true;
+  appView.hidden = false;
+  loadExpenses();
+}
+
+function showSignedOutView() {
+  currentUser = null;
+  expenses = [];
+  expenseList.replaceChildren();
+  render();
+  appView.hidden = true;
+  authView.hidden = false;
+  accountEmail.textContent = "";
+  signOutButton.hidden = true;
+  authEmailInput.value = "";
+  authPasswordInput.value = "";
 }
 
 function formatDate(dateString) {
@@ -129,7 +166,7 @@ function render() {
     removeButton.type = "button";
     removeButton.textContent = "×";
     removeButton.setAttribute("aria-label", `Delete ${expense.description}`);
-    removeButton.addEventListener("click", () => removeExpense(expense.id));
+    removeButton.addEventListener("click", () => removeExpense(expense.id, removeButton));
 
     right.append(amount, removeButton);
     item.append(icon, details, right);
@@ -137,65 +174,171 @@ function render() {
   }
 }
 
-function removeExpense(id) {
-  const previousExpenses = expenses;
-  expenses = expenses.filter((expense) => expense.id !== id);
-  if (!saveExpenses()) {
-    expenses = previousExpenses;
-    return;
+async function loadExpenses() {
+  if (!supabaseClient || !currentUser) return;
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("expenses")
+      .select("id, description, amount, category, date")
+      .order("date", { ascending: false });
+
+    if (error) throw error;
+
+    expenses = data.map((expense) => ({
+      ...expense,
+      amount: Number(expense.amount),
+    }));
+    setFormMessage("");
+    render();
+  } catch (error) {
+    console.error("Could not load expenses:", error);
+    setFormMessage("Couldn't load your expenses. Check your Supabase table and connection.");
   }
-  render();
 }
 
-form.addEventListener("submit", (event) => {
+async function removeExpense(id, button) {
+  button.disabled = true;
+  try {
+    const { error } = await supabaseClient
+      .from("expenses")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw error;
+
+    expenses = expenses.filter((expense) => expense.id !== id);
+    setFormMessage("");
+    render();
+  } catch (error) {
+    console.error("Could not delete expense:", error);
+    setFormMessage("Couldn't delete that expense. Please try again.");
+    button.disabled = false;
+  }
+}
+
+authSwitch.addEventListener("click", () => {
+  setAuthMode(authMode === "signin" ? "signup" : "signin");
+});
+
+authForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  formMessage.textContent = "";
+  if (!supabaseClient) {
+    setAuthMessage("Add your Supabase project URL and publishable key in supabase-config.js.");
+    return;
+  }
+
+  authSubmit.disabled = true;
+  setAuthMessage("");
+
+  try {
+    const email = authEmailInput.value.trim();
+    const password = authPasswordInput.value;
+    const result = authMode === "signup"
+      ? await supabaseClient.auth.signUp({ email, password })
+      : await supabaseClient.auth.signInWithPassword({ email, password });
+
+    if (result.error) {
+      console.error("Authentication failed:", result.error);
+      setAuthMessage(result.error.message);
+      return;
+    }
+
+    if (authMode === "signup" && !result.data.session) {
+      setAuthMessage("Check your email to confirm your account, then sign in.", false);
+      authForm.reset();
+    }
+  } catch (error) {
+    console.error("Authentication request failed:", error);
+    setAuthMessage("Couldn't reach Supabase. Check your connection and try again.");
+  } finally {
+    authSubmit.disabled = false;
+  }
+});
+
+signOutButton.addEventListener("click", async () => {
+  signOutButton.disabled = true;
+  try {
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) throw error;
+  } catch (error) {
+    console.error("Could not sign out:", error);
+    setFormMessage("Couldn't sign out. Please try again.");
+  } finally {
+    signOutButton.disabled = false;
+  }
+});
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  setFormMessage("");
 
   const description = descriptionInput.value.trim();
   const amount = Number(amountInput.value);
   const date = dateInput.value;
 
   if (!description || !Number.isFinite(amount) || amount <= 0 || !date) {
-    formMessage.textContent = "Enter a description, a positive amount, and a date.";
+    setFormMessage("Enter a description, a positive amount, and a date.");
     return;
   }
 
-  const expense = {
-    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    description,
-    amount: Math.round(amount * 100) / 100,
-    category: categoryInput.value,
-    date,
-  };
-  expenses = [expense, ...expenses];
+  const submitButton = form.querySelector(".submit-button");
+  submitButton.disabled = true;
+  try {
+    const { data, error } = await supabaseClient
+      .from("expenses")
+      .insert({
+        description,
+        amount: Math.round(amount * 100) / 100,
+        category: categoryInput.value,
+        date,
+      })
+      .select("id, description, amount, category, date")
+      .single();
 
-  if (!saveExpenses()) {
-    expenses = expenses.filter((entry) => entry.id !== expense.id);
-    return;
+    if (error) throw error;
+
+    expenses = [{ ...data, amount: Number(data.amount) }, ...expenses];
+    form.reset();
+    dateInput.value = localDateString();
+    descriptionInput.focus();
+    setFormMessage("");
+    render();
+  } catch (error) {
+    console.error("Could not save expense:", error);
+    setFormMessage("Couldn't save that expense. Please try again.");
+  } finally {
+    submitButton.disabled = false;
   }
-
-  form.reset();
-  dateInput.value = new Date().toISOString().slice(0, 10);
-  descriptionInput.focus();
-  render();
 });
 
-dateInput.value = new Date().toISOString().slice(0, 10);
+dateInput.value = localDateString();
 render();
 
-const { app, BrowserWindow } = require("electron");
-
-function createWindow() {
-  const window = new BrowserWindow({
-    width: 1200,
-    height: 800,
+if (!createClient) {
+  setupMessage.hidden = false;
+  setupMessage.textContent = "Supabase couldn't load. Check your internet connection and reload the page.";
+  authSubmit.disabled = true;
+  setAuthMessage("The login service is unavailable right now.");
+} else if (!supabaseConfigured) {
+  setupMessage.hidden = false;
+  authSubmit.disabled = true;
+  setAuthMessage("Configure Supabase to enable account sign-in.");
+} else {
+  supabaseClient.auth.onAuthStateChange((_event, session) => {
+    if (session?.user) {
+      showSignedInView(session.user);
+    } else {
+      showSignedOutView();
+    }
   });
 
-  window.loadFile("index.html");
+  supabaseClient.auth.getSession().then(({ data, error }) => {
+    if (error) {
+      console.error("Could not restore the Supabase session:", error);
+      setAuthMessage("Couldn't restore your session. Refresh the page or sign in again.");
+      return;
+    }
+    if (data.session?.user) showSignedInView(data.session.user);
+  });
 }
-
-app.whenReady().then(createWindow);
-
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") app.quit();
-});

@@ -1,23 +1,57 @@
 <!doctype html>
-<html lang="en">npm
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f5f7f4" />
-    <title>Daybook — Expense tracker</title>
+    <title>EXPSAVE — Your expenses, in focus</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="supabase-config.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="app.js" defer></script>
   </head>
   <body>
     <main class="app-shell">
       <header class="topbar">
-        <a class="brand" href="#" aria-label="Daybook home">
+        <a class="brand" href="#" aria-label="EXPSAVE home">
           <span class="brand-mark" aria-hidden="true">$</span>
-          <span>daybook</span>
+          <span>EXPSAVE</span>
         </a>
-        <span class="local-note"><span class="status-dot"></span> Saved on this device</span>
+        <div class="account-area">
+          <span class="local-note"><span class="status-dot"></span> Your secure expense space</span>
+          <span id="account-email" class="account-email"></span>
+          <button id="sign-out" class="sign-out-button" type="button" hidden>Sign out</button>
+        </div>
       </header>
 
+      <section id="auth-view" class="auth-view" aria-labelledby="auth-title">
+        <div class="auth-intro">
+          <p class="eyebrow">YOUR MONEY, IN FOCUS</p>
+          <h1 id="auth-title">A little more clarity.</h1>
+          <p class="intro-copy">A personal space for every dollar you spend.</p>
+        </div>
+        <section class="panel auth-panel" aria-labelledby="auth-mode-label">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">WELCOME TO EXPSAVE</p>
+              <h2 id="auth-mode-label">Welcome back</h2>
+            </div>
+            <span class="heading-icon" aria-hidden="true">↗</span>
+          </div>
+          <form id="auth-form">
+            <label for="auth-email">Email</label>
+            <input id="auth-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+            <label for="auth-password">Password</label>
+            <input id="auth-password" name="password" type="password" autocomplete="current-password" minlength="6" placeholder="At least 6 characters" required />
+            <button id="auth-submit" class="submit-button" type="submit">Sign in</button>
+            <p id="auth-message" class="form-message" role="status" aria-live="polite"></p>
+          </form>
+          <button id="auth-switch" class="auth-switch" type="button">New to EXPSAVE? Create an account</button>
+          <p id="setup-message" class="setup-message" hidden>Finish Supabase setup to turn on accounts. Add your project URL and publishable key in <code>supabase-config.js</code>, then run the SQL in <code>supabase-schema.sql</code>.</p>
+        </section>
+      </section>
+
+      <section id="app-view" hidden>
       <section class="intro" aria-labelledby="page-title">
         <p class="eyebrow">YOUR MONEY, IN FOCUS</p>
         <h1 id="page-title">A little more clarity.</h1>
@@ -103,6 +137,7 @@
         </section>
       </div>
       <footer>Small steps make a big difference.</footer>
+      </section>
     </main>
   </body>
 </html>

@@ -76,6 +76,36 @@ select {
   font-size: 12px;
 }
 
+.account-area {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.account-email {
+  max-width: 220px;
+  overflow: hidden;
+  color: #647168;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sign-out-button {
+  padding: 8px 11px;
+  border: 1px solid #e6ebe6;
+  border-radius: 8px;
+  color: #536258;
+  background: white;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.sign-out-button:hover {
+  border-color: #b8cbbd;
+  color: var(--green);
+}
+
 .status-dot {
   width: 7px;
   height: 7px;
@@ -120,6 +150,77 @@ h1 {
   margin-bottom: 0;
   color: #7a857d;
   font-size: 14px;
+}
+
+.auth-view {
+  width: min(440px, 100%);
+  margin: 56px auto 0;
+}
+
+.auth-intro {
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.auth-intro h1 {
+  font-size: clamp(29px, 6vw, 36px);
+}
+
+.auth-panel {
+  min-height: 0;
+  padding: 27px;
+}
+
+.auth-panel .panel-heading {
+  margin-bottom: 22px;
+}
+
+.auth-panel form > input {
+  display: block;
+}
+
+.auth-switch {
+  width: 100%;
+  padding: 8px 0 0;
+  border: 0;
+  color: var(--green);
+  background: transparent;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.auth-switch:hover {
+  text-decoration: underline;
+}
+
+.setup-message {
+  padding: 11px 12px;
+  margin: 15px 0 0;
+  border: 1px solid #e8dfc7;
+  border-radius: 9px;
+  color: #77643a;
+  background: #fbf8ef;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.setup-message code {
+  font-size: 10px;
+}
+
+.form-message.is-success {
+  color: #2f6449;
+}
+
+.submit-button:disabled,
+.sign-out-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 .summary-grid {
@@ -462,6 +563,28 @@ footer {
     height: 68px;
   }
 
+  .account-area {
+    gap: 8px;
+  }
+
+  .account-area .local-note {
+    display: none;
+  }
+
+  .account-email {
+    max-width: 125px;
+    font-size: 10px;
+  }
+
+  .sign-out-button {
+    padding: 7px 8px;
+    font-size: 10px;
+  }
+
+  .auth-view {
+    margin-top: 40px;
+  }
+
   .intro {
     padding: 35px 0 24px;
   }
@@ -499,6 +622,10 @@ footer {
 @media (max-width: 380px) {
   .local-note {
     font-size: 10px;
+  }
+
+  .auth-panel {
+    padding: 20px;
   }
 
   .field-row {
